@@ -512,6 +512,7 @@
 
   <form class="cta-form" id="ctaForm">
     <input type="text" id="fname" placeholder="Your Name / Tu Nombre" required>
+    <input type="email" id="femail" placeholder="Email (required / requerido)" required>
     <input type="tel" id="fphone" placeholder="Phone / Teléfono">
     <select id="ftier" required>
       <option value="" data-en="— Select Package —" data-es="— Elige un Paquete —">— Select Package —</option>
@@ -593,15 +594,16 @@ window.addEventListener('load', () => {
 
 /* ── FORMSPREE SUBMIT ── */
 async function sendForm() {
-  const isES = currentLang === 'es';
+  const isES  = currentLang === 'es';
   const name  = document.getElementById('fname').value.trim();
+  const email = document.getElementById('femail').value.trim();
   const phone = document.getElementById('fphone').value.trim();
   const tier  = document.getElementById('ftier').value;
   const msg   = document.getElementById('fmsg').value.trim();
   const btn   = document.getElementById('submitBtn');
 
-  if (!name || !tier) {
-    alert(isES ? 'Por favor completa los campos requeridos.' : 'Please fill in the required fields.');
+  if (!name || !email || !tier) {
+    alert(isES ? 'Por favor completa todos los campos requeridos.' : 'Please fill in all required fields.');
     return;
   }
 
@@ -613,12 +615,16 @@ async function sendForm() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({
-        name:    name,
-        phone:   phone || 'N/A',
-        package: tier,
-        message: msg   || '—'
+        name:     name,
+        email:    email,
+        _replyto: email,
+        phone:    phone || 'N/A',
+        package:  tier,
+        message:  msg || '—'
       })
     });
+
+    const data = await res.json();
 
     if (res.ok) {
       document.getElementById('ctaForm').style.display = 'none';
@@ -632,10 +638,14 @@ async function sendForm() {
         btn.disabled = false;
       }, 7000);
     } else {
-      throw new Error('Server error');
+      const errMsg = data?.errors?.map(e => e.message).join(', ') || 'Unknown error';
+      throw new Error(errMsg);
     }
   } catch (err) {
-    alert(isES ? 'Algo salió mal. Intenta de nuevo o escríbenos directamente.' : 'Something went wrong. Please try again or email us directly.');
+    console.error('Formspree error:', err);
+    alert(isES
+      ? 'Algo salió mal: ' + err.message + '. Escríbenos directamente a elpollodetailing@gmail.com'
+      : 'Something went wrong: ' + err.message + '. Please email us directly at elpollodetailing@gmail.com');
     btn.textContent = isES ? 'Enviar Mensaje →' : 'Send Message →';
     btn.disabled = false;
   }
