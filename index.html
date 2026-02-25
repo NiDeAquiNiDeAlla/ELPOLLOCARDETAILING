@@ -63,7 +63,7 @@
     border-radius: 100px;
     transition: transform 0.3s cubic-bezier(.4,0,.2,1), width 0.3s cubic-bezier(.4,0,.2,1);
     z-index: 0;
-    width: 40px; /* set via JS */
+    width: 40px;
   }
 
   /* ── NAV ── */
@@ -139,7 +139,6 @@
   }
   .hero h1 em { font-style: normal; color: var(--gold); }
 
-  /* Loyalty badge */
   .loyalty-badge {
     display: inline-flex; align-items: center; gap: 12px;
     background: rgba(201,168,76,0.09);
@@ -270,7 +269,7 @@
   }
   .why-item p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
 
-  /* ── CTA / BOOK ── */
+  /* ── CTA ── */
   .cta-section {
     background: var(--graphite);
     border-top: 1px solid rgba(201,168,76,0.2);
@@ -304,6 +303,7 @@
   .cta-form input:focus, .cta-form select:focus, .cta-form textarea:focus { border-color: var(--gold); }
   .cta-form select option { background: var(--black); }
   .cta-form textarea { min-height: 88px; }
+  .cta-form button:disabled { opacity: 0.6; cursor: not-allowed; }
 
   .cta-success {
     display: none;
@@ -508,9 +508,9 @@
 <div class="cta-section" id="book">
   <h2 data-en="Ready to<br>Shine?" data-es="¿Listo para<br>Brillar?">Ready to<br>Shine?</h2>
   <p class="cta-sub" data-en="Fill out the form and we'll get back to you within 24 hours." data-es="Llena el formulario y te contactamos en menos de 24 horas.">Fill out the form and we'll get back to you within 24 hours.</p>
-  <p class="cta-email-hint" data-en="Or reach us directly at: <a href='mailto:elpollodetailing@gmail.com'>elpollodetailing@gmail.com</a>" data-es="O contáctanos directamente: <a href='mailto:elpollodetailing@gmail.com'>elpollodetailing@gmail.com</a>">Or reach us directly at: <a href="/cdn-cgi/l/email-protection#33565f435c5f5f5c575647525a5f5a5d5473545e525a5f1d505c5e"><span class="__cf_email__" data-cfemail="abcec7dbc4c7c7c4cfcedfcac2c7c2c5ccebccc6cac2c785c8c4c6">[email&#160;protected]</span></a></p>
+  <p class="cta-email-hint" data-en="Or reach us directly: <a href='mailto:elpollodetailing@gmail.com'>elpollodetailing@gmail.com</a>" data-es="O escríbenos directo: <a href='mailto:elpollodetailing@gmail.com'>elpollodetailing@gmail.com</a>">Or reach us directly: <a href="mailto:elpollodetailing@gmail.com">elpollodetailing@gmail.com</a></p>
 
-  <form class="cta-form" id="ctaForm" onsubmit="sendEmail(event)">
+  <form class="cta-form" id="ctaForm">
     <input type="text" id="fname" placeholder="Your Name / Tu Nombre" required>
     <input type="tel" id="fphone" placeholder="Phone / Teléfono">
     <select id="ftier" required>
@@ -520,7 +520,7 @@
       <option value="The Showstopper — from $299" data-en="The Showstopper — from $299" data-es="El Espectacular — desde $299">The Showstopper — from $299</option>
     </select>
     <textarea id="fmsg" placeholder="Message / Mensaje (optional / opcional)"></textarea>
-    <button type="submit" class="btn-primary" data-en="Send Message →" data-es="Enviar Mensaje →">Send Message →</button>
+    <button type="button" id="submitBtn" class="btn-primary" onclick="sendForm()" data-en="Send Message →" data-es="Enviar Mensaje →">Send Message →</button>
   </form>
 
   <div class="cta-success" id="ctaSuccess">
@@ -534,13 +534,13 @@
 <footer>
   <div class="logo">El <span>Pollo</span> Detailing</div>
   <div class="footer-links">
-    <a href="/cdn-cgi/l/email-protection#e2878e928d8e8e8d868796838b8e8b8c85a2858f838b8ecc818d8f"><span class="__cf_email__" data-cfemail="bbded7cbd4d7d7d4dfdecfdad2d7d2d5dcfbdcd6dad2d795d8d4d6">[email&#160;protected]</span></a>
+    <a href="mailto:elpollodetailing@gmail.com">elpollodetailing@gmail.com</a>
     <a href="#">Instagram</a>
   </div>
   <p>© 2025 El Pollo Detailing. All rights reserved.</p>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 /* ── LANGUAGE SYSTEM ── */
 let currentLang = 'en';
 
@@ -558,7 +558,6 @@ function applyLang() {
   btnEN.classList.toggle('active', !isES);
   btnES.classList.toggle('active',  isES);
 
-  // Slide pill to active button
   const enW = btnEN.offsetWidth;
   const esW = btnES.offsetWidth;
   if (!isES) {
@@ -572,7 +571,6 @@ function applyLang() {
   document.getElementById('langLabel').textContent = isES ? 'Idioma' : 'Language';
   document.documentElement.lang = currentLang;
 
-  // Swap all text nodes
   document.querySelectorAll('[data-en]').forEach(el => {
     const val = el.getAttribute('data-' + currentLang);
     if (!val) return;
@@ -580,14 +578,12 @@ function applyLang() {
     else { el.textContent = val; }
   });
 
-  // Swap select options
   document.querySelectorAll('select option[data-en]').forEach(opt => {
     const val = opt.getAttribute('data-' + currentLang);
     if (val) opt.textContent = val;
   });
 }
 
-// Init pill on load
 window.addEventListener('load', () => {
   const pill  = document.getElementById('langPill');
   const btnEN = document.getElementById('btnEN');
@@ -595,17 +591,56 @@ window.addEventListener('load', () => {
   pill.style.transform = 'translateX(0)';
 });
 
-/* ── EMAIL FORM ── */
-function sendEmail(e) {
-  e.preventDefault();
+/* ── FORMSPREE SUBMIT ── */
+async function sendForm() {
+  const isES = currentLang === 'es';
   const name  = document.getElementById('fname').value.trim();
   const phone = document.getElementById('fphone').value.trim();
   const tier  = document.getElementById('ftier').value;
   const msg   = document.getElementById('fmsg').value.trim();
+  const btn   = document.getElementById('submitBtn');
 
-  const subject = encodeURIComponent(`New Booking — ${tier}`);
-  const body    = encodeURIComponent(
-    `Name: ${name}\nPhone: ${phone || 'N/A'}\nPackage: ${tier}\n\nMessage:\n${msg || '—'}`
-  );
+  if (!name || !tier) {
+    alert(isES ? 'Por favor completa los campos requeridos.' : 'Please fill in the required fields.');
+    return;
+  }
 
-  window.location.href = `mailto:elpollodetailing@gmail.com?subject=${subje
+  btn.textContent = isES ? 'Enviando…' : 'Sending…';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('https://formspree.io/f/maqdapob', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        name:    name,
+        phone:   phone || 'N/A',
+        package: tier,
+        message: msg   || '—'
+      })
+    });
+
+    if (res.ok) {
+      document.getElementById('ctaForm').style.display = 'none';
+      const success = document.getElementById('ctaSuccess');
+      success.style.display = 'flex';
+      document.getElementById('ctaForm').reset();
+      setTimeout(() => {
+        document.getElementById('ctaForm').style.display = 'flex';
+        success.style.display = 'none';
+        btn.textContent = isES ? 'Enviar Mensaje →' : 'Send Message →';
+        btn.disabled = false;
+      }, 7000);
+    } else {
+      throw new Error('Server error');
+    }
+  } catch (err) {
+    alert(isES ? 'Algo salió mal. Intenta de nuevo o escríbenos directamente.' : 'Something went wrong. Please try again or email us directly.');
+    btn.textContent = isES ? 'Enviar Mensaje →' : 'Send Message →';
+    btn.disabled = false;
+  }
+}
+</script>
+
+</body>
+</html>
