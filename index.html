@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>El Pollo Detailing</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0a0a0a;
+    --charcoal: #141414;
+    --graphite: #1e1e1e;
+    --gold: #c9a84c;
+    --gold-light: #e8c96b;
+    --white: #f4f4f0;
+    --muted: #888;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* ── LANGUAGE BAR ── */
+  .lang-bar {
+    position: fixed; top: 0; width: 100%; z-index: 200;
+    display: flex; justify-content: flex-end; align-items: center;
+    padding: 6px 28px; gap: 10px;
+    background: rgba(10,10,10,0.97);
+    border-bottom: 1px solid rgba(201,168,76,0.12);
+  }
+  .lang-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .lang-toggle {
+    position: relative; display: flex; align-items: center;
+    background: var(--charcoal);
+    border: 1px solid rgba(201,168,76,0.3);
+    border-radius: 100px;
+    padding: 3px; gap: 2px;
+    cursor: pointer; user-select: none;
+  }
+  .lang-btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.7rem;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 100px;
+    color: var(--muted); transition: color 0.25s;
+    position: relative; z-index: 1;
+  }
+  .lang-btn.active { color: var(--black); }
+  .lang-pill {
+    position: absolute; top: 3px; left: 3px;
+    height: calc(100% - 6px);
+    background: var(--gold);
+    border-radius: 100px;
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1), width 0.3s cubic-bezier(.4,0,.2,1);
+    z-index: 0;
+    width: 40px; /* set via JS */
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 33px; width: 100%; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 28px;
+    background: rgba(10,10,10,0.92);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+  }
+  .logo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 1.15rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--white); white-space: nowrap;
+  }
+  .logo span { color: var(--gold); }
+  .nav-links { display: flex; gap: 20px; align-items: center; }
+  .nav-links a {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600; font-size: 0.76rem;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-cta {
+    background: var(--gold) !important;
+    color: var(--black) !important;
+    padding: 8px 18px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.15em !important;
+  }
+  .nav-cta:hover { background: var(--gold-light) !important; }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 110px 28px 60px;
+    position: relative;
+    background: linear-gradient(160deg, #0a0a0a 0%, #1a1208 60%, #0a0a0a 100%);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(
+      90deg, transparent, transparent 80px,
+      rgba(201,168,76,0.03) 80px, rgba(201,168,76,0.03) 81px
+    );
+  }
+  .hero-bg-text {
+    position: absolute; top: 50%; right: -20px;
+    transform: translateY(-50%);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: clamp(120px, 28vw, 280px);
+    letter-spacing: -0.05em; line-height: 1;
+    color: rgba(201,168,76,0.04);
+    text-transform: uppercase; pointer-events: none; user-select: none;
+  }
+  .hero-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: clamp(3rem, 12vw, 7rem);
+    line-height: 0.9; text-transform: uppercase;
+    letter-spacing: -0.02em; margin-bottom: 22px;
+  }
+  .hero h1 em { font-style: normal; color: var(--gold); }
+
+  /* Loyalty badge */
+  .loyalty-badge {
+    display: inline-flex; align-items: center; gap: 12px;
+    background: rgba(201,168,76,0.09);
+    border: 1px solid rgba(201,168,76,0.35);
+    padding: 11px 18px; margin-bottom: 30px;
+    max-width: fit-content;
+  }
+  .loyalty-badge .badge-icon { font-size: 1.2rem; flex-shrink: 0; }
+  .badge-text {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.88rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold-light); line-height: 1.2;
+  }
+  .badge-text small {
+    display: block; font-weight: 400; font-size: 0.72rem;
+    color: var(--muted); letter-spacing: 0.08em;
+    text-transform: none; margin-top: 3px;
+  }
+
+  .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--gold); color: var(--black);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.8rem;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 14px 32px; border: none; cursor: pointer;
+    text-decoration: none; display: inline-block;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--gold-light); }
+  .btn-outline {
+    background: transparent; color: var(--white);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.8rem;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 14px 32px; border: 1px solid rgba(255,255,255,0.2); cursor: pointer;
+    text-decoration: none; display: inline-block;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── SECTIONS ── */
+  .section { padding: 90px 28px; }
+  .section-header { margin-bottom: 60px; }
+  .section-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 12px;
+  }
+  .section-header h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: clamp(2.2rem, 7vw, 4.5rem);
+    line-height: 0.95; text-transform: uppercase; letter-spacing: -0.02em;
+  }
+
+  /* ── TIERS ── */
+  .tiers { display: grid; gap: 2px; }
+  .tier {
+    background: var(--charcoal);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding: 36px 28px; position: relative; overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+  .tier:hover { border-color: var(--gold); transform: translateY(-3px); }
+  .tier.featured {
+    border-color: var(--gold);
+    background: linear-gradient(135deg, #1a1208 0%, #141414 100%);
+  }
+  .tier-badge {
+    position: absolute; top: 20px; right: 20px;
+    background: var(--gold); color: var(--black);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 0.65rem;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 4px 10px;
+  }
+  .tier-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: 3.5rem;
+    color: rgba(201,168,76,0.15); line-height: 1; margin-bottom: 8px;
+  }
+  .tier h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 1.6rem;
+    letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .tier-price {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.3rem; color: var(--gold); font-weight: 600; margin-bottom: 20px;
+  }
+  .tier-features {
+    list-style: none;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding-top: 20px;
+    display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px;
+  }
+  .tier-features li {
+    font-size: 0.88rem; color: rgba(244,244,240,0.7);
+    padding-left: 16px; position: relative; line-height: 1.5;
+  }
+  .tier-features li::before {
+    content: '—'; position: absolute; left: 0;
+    color: var(--gold); font-weight: 600;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent);
+    margin: 0 28px;
+  }
+
+  /* ── WHY ── */
+  .why-grid { display: grid; gap: 28px; }
+  .why-item { display: flex; gap: 18px; }
+  .why-icon {
+    width: 40px; height: 40px; flex-shrink: 0;
+    border: 1px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; color: var(--gold);
+  }
+  .why-item h4 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; font-size: 1rem;
+    letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px;
+  }
+  .why-item p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+  /* ── CTA / BOOK ── */
+  .cta-section {
+    background: var(--graphite);
+    border-top: 1px solid rgba(201,168,76,0.2);
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    padding: 80px 28px; text-align: center;
+  }
+  .cta-section h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 900; font-size: clamp(2rem, 8vw, 4rem);
+    text-transform: uppercase; line-height: 0.95; margin-bottom: 14px;
+  }
+  .cta-sub { color: var(--muted); font-size: 0.92rem; margin-bottom: 6px; }
+  .cta-email-hint {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.88rem; letter-spacing: 0.08em;
+    color: var(--gold); margin-bottom: 36px;
+  }
+  .cta-email-hint a { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(201,168,76,0.4); padding-bottom: 1px; }
+  .cta-form {
+    display: flex; flex-direction: column; gap: 12px;
+    max-width: 460px; margin: 0 auto;
+  }
+  .cta-form input, .cta-form select, .cta-form textarea {
+    background: var(--black); border: 1px solid rgba(255,255,255,0.1);
+    color: var(--white); padding: 14px 16px;
+    font-family: 'Barlow', sans-serif; font-size: 0.9rem;
+    outline: none; width: 100%;
+    transition: border-color 0.2s;
+    resize: none;
+  }
+  .cta-form input:focus, .cta-form select:focus, .cta-form textarea:focus { border-color: var(--gold); }
+  .cta-form select option { background: var(--black); }
+  .cta-form textarea { min-height: 88px; }
+
+  .cta-success {
+    display: none;
+    flex-direction: column; align-items: center; gap: 12px;
+    padding: 32px;
+    border: 1px solid rgba(201,168,76,0.35);
+    background: rgba(201,168,76,0.07);
+    max-width: 460px; margin: 0 auto;
+  }
+  .cta-success .s-icon { font-size: 2rem; }
+  .cta-success strong {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--gold-light);
+  }
+  .cta-success small { color: var(--muted); font-size: 0.82rem; }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 40px 28px;
+    display: flex; flex-direction: column; gap: 20px;
+    align-items: center; text-align: center;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  footer .logo { font-size: 1.1rem; }
+  footer p { font-size: 0.78rem; color: var(--muted); }
+  .footer-links { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; }
+  .footer-links a {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none; transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--gold); }
+
+  /* ── RESPONSIVE ── */
+  @media(min-width: 700px) {
+    .lang-bar { padding: 6px 60px; }
+    nav { padding: 16px 60px; }
+    .hero { padding: 120px 60px 80px; }
+    .tiers { grid-template-columns: repeat(3, 1fr); }
+    .why-grid { grid-template-columns: repeat(2, 1fr); }
+    .section { padding: 100px 60px; }
+    .divider { margin: 0 60px; }
+    .cta-form { flex-direction: row; flex-wrap: wrap; }
+    .cta-form input, .cta-form select { flex: 1; min-width: 150px; }
+    .cta-form textarea, .cta-form button { flex: 1 1 100%; }
+    footer { flex-direction: row; justify-content: space-between; text-align: left; }
+  }
+  @media(min-width: 1000px) {
+    .why-grid { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hero-tag      { animation: fadeUp 0.7s 0.0s ease both; }
+  .hero h1       { animation: fadeUp 0.7s 0.1s ease both; }
+  .loyalty-badge { animation: fadeUp 0.7s 0.2s ease both; }
+  .hero-btns     { animation: fadeUp 0.7s 0.3s ease both; }
+</style>
+</head>
+<body>
+
+<!-- ══ LANGUAGE BAR ══ -->
+<div class="lang-bar">
+  <span class="lang-label" id="langLabel">Language</span>
+  <div class="lang-toggle" onclick="switchLang()" title="Switch language / Cambiar idioma" aria-label="Toggle language">
+    <div class="lang-pill" id="langPill"></div>
+    <div class="lang-btn active" id="btnEN">EN</div>
+    <div class="lang-btn" id="btnES">ES</div>
+  </div>
+</div>
+
+<!-- ══ NAV ══ -->
+<nav>
+  <div class="logo">El <span>Pollo</span> Detailing</div>
+  <div class="nav-links">
+    <a href="#services" data-en="Services" data-es="Servicios">Services</a>
+    <a href="#why" data-en="About" data-es="Nosotros">About</a>
+    <a href="#book" class="nav-cta" data-en="Book Now" data-es="Reservar">Book Now</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-bg-text">Detail</div>
+  <div class="hero-tag" data-en="Professional Auto Detailing" data-es="Detallado Profesional de Autos">Professional Auto Detailing</div>
+  <h1 data-en="Your Car.<br>Our <em>Obsession.</em>" data-es="Tu Auto.<br>Nuestra <em>Pasión.</em>">Your Car.<br>Our <em>Obsession.</em></h1>
+
+  <div class="loyalty-badge">
+    <span class="badge-icon">🎁</span>
+    <div class="badge-text">
+      <span data-en="Loyalty Program" data-es="Programa de Lealtad">Loyalty Program</span>
+      <small data-en="Get a FREE wash after every 10 washes — on us." data-es="¡Lavado GRATIS después de cada 10 lavadas — cortesía de El Pollo!">Get a FREE wash after every 10 washes — on us.</small>
+    </div>
+  </div>
+
+  <div class="hero-btns">
+    <a href="#book" class="btn-primary" data-en="Book a Detail" data-es="Reserva Ahora">Book a Detail</a>
+    <a href="#services" class="btn-outline" data-en="View Services" data-es="Ver Servicios">View Services</a>
+  </div>
+</section>
+
+<!-- ══ SERVICES ══ -->
+<section class="section" id="services">
+  <div class="section-header">
+    <div class="section-tag" data-en="Our Services" data-es="Nuestros Servicios">Our Services</div>
+    <h2 data-en="Choose Your<br>Level" data-es="Elige Tu<br>Nivel">Choose Your<br>Level</h2>
+  </div>
+  <div class="tiers">
+
+    <div class="tier">
+      <div class="tier-num">01</div>
+      <h3 data-en="The Quick Pull" data-es="El Rápido">The Quick Pull</h3>
+      <div class="tier-price" data-en="From $79" data-es="Desde $79">From $79</div>
+      <ul class="tier-features">
+        <li data-en="Exterior hand wash & dry" data-es="Lavado exterior a mano y secado">Exterior hand wash & dry</li>
+        <li data-en="Wheel & tire clean" data-es="Limpieza de rines y llantas">Wheel & tire clean</li>
+        <li data-en="Interior vacuum" data-es="Aspirado interior">Interior vacuum</li>
+        <li data-en="Window wipe-down" data-es="Limpieza de ventanas">Window wipe-down</li>
+        <li data-en="Dashboard dust" data-es="Sacudido del tablero">Dashboard dust</li>
+      </ul>
+      <a href="#book" class="btn-outline" data-en="Select" data-es="Elegir">Select</a>
+    </div>
+
+    <div class="tier featured">
+      <div class="tier-badge" data-en="Most Popular" data-es="Más Popular">Most Popular</div>
+      <div class="tier-num">02</div>
+      <h3 data-en="The Full Spread" data-es="El Completo">The Full Spread</h3>
+      <div class="tier-price" data-en="From $159" data-es="Desde $159">From $159</div>
+      <ul class="tier-features">
+        <li data-en="Everything in Quick Pull" data-es="Todo del Rápido">Everything in Quick Pull</li>
+        <li data-en="Clay bar treatment" data-es="Tratamiento de barra de arcilla">Clay bar treatment</li>
+        <li data-en="Interior shampoo & steam" data-es="Shampoo y vapor interior">Interior shampoo & steam</li>
+        <li data-en="Leather conditioning" data-es="Acondicionado de cuero">Leather conditioning</li>
+        <li data-en="Paint sealant" data-es="Sellador de pintura">Paint sealant</li>
+        <li data-en="Engine bay wipe" data-es="Limpieza del compartimento del motor">Engine bay wipe</li>
+      </ul>
+      <a href="#book" class="btn-primary" data-en="Select" data-es="Elegir">Select</a>
+    </div>
+
+    <div class="tier">
+      <div class="tier-num">03</div>
+      <h3 data-en="The Showstopper" data-es="El Espectacular">The Showstopper</h3>
+      <div class="tier-price" data-en="From $299" data-es="Desde $299">From $299</div>
+      <ul class="tier-features">
+        <li data-en="Everything in Full Spread" data-es="Todo del Completo">Everything in Full Spread</li>
+        <li data-en="Paint correction & polish" data-es="Corrección y pulido de pintura">Paint correction & polish</li>
+        <li data-en="Ceramic coating application" data-es="Aplicación de recubrimiento cerámico">Ceramic coating application</li>
+        <li data-en="Odor elimination treatment" data-es="Tratamiento eliminador de olores">Odor elimination treatment</li>
+        <li data-en="Full trim restoration" data-es="Restauración completa de molduras">Full trim restoration</li>
+      </ul>
+      <a href="#book" class="btn-outline" data-en="Select" data-es="Elegir">Select</a>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ WHY ══ -->
+<section class="section" id="why">
+  <div class="section-header">
+    <div class="section-tag" data-en="Why El Pollo" data-es="¿Por Qué Elegirnos?">Why El Pollo</div>
+    <h2 data-en="Built Different" data-es="Hechos Diferente">Built Different</h2>
+  </div>
+  <div class="why-grid">
+    <div class="why-item">
+      <div class="why-icon">✦</div>
+      <div>
+        <h4 data-en="Mobile Service" data-es="Servicio Móvil">Mobile Service</h4>
+        <p data-en="We come to you — at home or at work. No drop-offs, no waiting rooms." data-es="Vamos a donde estés — en casa o en el trabajo. Sin filas ni esperas.">We come to you — at home or at work. No drop-offs, no waiting rooms.</p>
+      </div>
+    </div>
+    <div class="why-item">
+      <div class="why-icon">◈</div>
+      <div>
+        <h4 data-en="Premium Products" data-es="Productos Premium">Premium Products</h4>
+        <p data-en="Only professional-grade, paint-safe chemicals used on every job." data-es="Solo usamos químicos de grado profesional, seguros para la pintura de tu auto.">Only professional-grade, paint-safe chemicals used on every job.</p>
+      </div>
+    </div>
+    <div class="why-item">
+      <div class="why-icon">◉</div>
+      <div>
+        <h4 data-en="Satisfaction Guarantee" data-es="Garantía de Satisfacción">Satisfaction Guarantee</h4>
+        <p data-en="Not happy? We make it right — every single time, no questions asked." data-es="¿No quedaste satisfecho? Lo arreglamos — sin preguntas, sin costo adicional.">Not happy? We make it right — every single time, no questions asked.</p>
+      </div>
+    </div>
+    <div class="why-item">
+      <div class="why-icon">⬡</div>
+      <div>
+        <h4 data-en="Transparent Pricing" data-es="Precios Claros">Transparent Pricing</h4>
+        <p data-en="No hidden fees. What you see is what you pay. Always." data-es="Sin cargos ocultos. Lo que ves es lo que pagas. Siempre.">No hidden fees. What you see is what you pay. Always.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA / BOOK ══ -->
+<div class="cta-section" id="book">
+  <h2 data-en="Ready to<br>Shine?" data-es="¿Listo para<br>Brillar?">Ready to<br>Shine?</h2>
+  <p class="cta-sub" data-en="Fill out the form and we'll get back to you within 24 hours." data-es="Llena el formulario y te contactamos en menos de 24 horas.">Fill out the form and we'll get back to you within 24 hours.</p>
+  <p class="cta-email-hint" data-en="Or reach us directly at: <a href='mailto:elpollodetailing@gmail.com'>elpollodetailing@gmail.com</a>" data-es="O contáctanos directamente: <a href='mailto:elpollodetailing@gmail.com'>elpollodetailing@gmail.com</a>">Or reach us directly at: <a href="/cdn-cgi/l/email-protection#33565f435c5f5f5c575647525a5f5a5d5473545e525a5f1d505c5e"><span class="__cf_email__" data-cfemail="abcec7dbc4c7c7c4cfcedfcac2c7c2c5ccebccc6cac2c785c8c4c6">[email&#160;protected]</span></a></p>
+
+  <form class="cta-form" id="ctaForm" onsubmit="sendEmail(event)">
+    <input type="text" id="fname" placeholder="Your Name / Tu Nombre" required>
+    <input type="tel" id="fphone" placeholder="Phone / Teléfono">
+    <select id="ftier" required>
+      <option value="" data-en="— Select Package —" data-es="— Elige un Paquete —">— Select Package —</option>
+      <option value="The Quick Pull — from $79" data-en="The Quick Pull — from $79" data-es="El Rápido — desde $79">The Quick Pull — from $79</option>
+      <option value="The Full Spread — from $159" data-en="The Full Spread — from $159" data-es="El Completo — desde $159">The Full Spread — from $159</option>
+      <option value="The Showstopper — from $299" data-en="The Showstopper — from $299" data-es="El Espectacular — desde $299">The Showstopper — from $299</option>
+    </select>
+    <textarea id="fmsg" placeholder="Message / Mensaje (optional / opcional)"></textarea>
+    <button type="submit" class="btn-primary" data-en="Send Message →" data-es="Enviar Mensaje →">Send Message →</button>
+  </form>
+
+  <div class="cta-success" id="ctaSuccess">
+    <div class="s-icon">✦</div>
+    <strong data-en="Message sent!" data-es="¡Mensaje enviado!">Message sent!</strong>
+    <small data-en="We'll be in touch within 24 hours." data-es="Te contactaremos en menos de 24 horas.">We'll be in touch within 24 hours.</small>
+  </div>
+</div>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="logo">El <span>Pollo</span> Detailing</div>
+  <div class="footer-links">
+    <a href="/cdn-cgi/l/email-protection#e2878e928d8e8e8d868796838b8e8b8c85a2858f838b8ecc818d8f"><span class="__cf_email__" data-cfemail="bbded7cbd4d7d7d4dfdecfdad2d7d2d5dcfbdcd6dad2d795d8d4d6">[email&#160;protected]</span></a>
+    <a href="#">Instagram</a>
+  </div>
+  <p>© 2025 El Pollo Detailing. All rights reserved.</p>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ── LANGUAGE SYSTEM ── */
+let currentLang = 'en';
+
+function switchLang() {
+  currentLang = currentLang === 'en' ? 'es' : 'en';
+  applyLang();
+}
+
+function applyLang() {
+  const isES = currentLang === 'es';
+  const btnEN = document.getElementById('btnEN');
+  const btnES = document.getElementById('btnES');
+  const pill  = document.getElementById('langPill');
+
+  btnEN.classList.toggle('active', !isES);
+  btnES.classList.toggle('active',  isES);
+
+  // Slide pill to active button
+  const enW = btnEN.offsetWidth;
+  const esW = btnES.offsetWidth;
+  if (!isES) {
+    pill.style.width = enW + 'px';
+    pill.style.transform = 'translateX(0)';
+  } else {
+    pill.style.width = esW + 'px';
+    pill.style.transform = `translateX(${enW + 2}px)`;
+  }
+
+  document.getElementById('langLabel').textContent = isES ? 'Idioma' : 'Language';
+  document.documentElement.lang = currentLang;
+
+  // Swap all text nodes
+  document.querySelectorAll('[data-en]').forEach(el => {
+    const val = el.getAttribute('data-' + currentLang);
+    if (!val) return;
+    if (val.includes('<')) { el.innerHTML = val; }
+    else { el.textContent = val; }
+  });
+
+  // Swap select options
+  document.querySelectorAll('select option[data-en]').forEach(opt => {
+    const val = opt.getAttribute('data-' + currentLang);
+    if (val) opt.textContent = val;
+  });
+}
+
+// Init pill on load
+window.addEventListener('load', () => {
+  const pill  = document.getElementById('langPill');
+  const btnEN = document.getElementById('btnEN');
+  pill.style.width = btnEN.offsetWidth + 'px';
+  pill.style.transform = 'translateX(0)';
+});
+
+/* ── EMAIL FORM ── */
+function sendEmail(e) {
+  e.preventDefault();
+  const name  = document.getElementById('fname').value.trim();
+  const phone = document.getElementById('fphone').value.trim();
+  const tier  = document.getElementById('ftier').value;
+  const msg   = document.getElementById('fmsg').value.trim();
+
+  const subject = encodeURIComponent(`New Booking — ${tier}`);
+  const body    = encodeURIComponent(
+    `Name: ${name}\nPhone: ${phone || 'N/A'}\nPackage: ${tier}\n\nMessage:\n${msg || '—'}`
+  );
+
+  window.location.href = `mailto:elpollodetailing@gmail.com?subject=${subje
